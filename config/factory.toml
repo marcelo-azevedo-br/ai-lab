@@ -17,25 +17,25 @@ role_file = "factory/agents/orchestrator.md"
 [workers.research]
 provider = "ollama"
 command = "ollama"
-model = "qwen2.5:7b"
+model = "qwen2.5:3b"
 role_file = "factory/agents/research.md"
 
 [workers.analyst]
 provider = "ollama"
 command = "ollama"
-model = "llama3:8b"
+model = "qwen2.5:3b"
 role_file = "factory/agents/analyst.md"
 
 [workers.dev]
 provider = "ollama"
 command = "ollama"
-model = "deepseek-coder:6.7b"
+model = "qwen2.5:3b"
 role_file = "factory/agents/dev.md"
 
 [workers.marketing]
 provider = "ollama"
 command = "ollama"
-model = "phi3:mini"
+model = "qwen2.5:3b"
 role_file = "factory/agents/marketing.md"
 
 [[pipeline.steps]]
