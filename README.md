@@ -43,7 +43,7 @@ Se voce estiver no WSL e nao quiser que o `ollama pull` sature sua internet inte
 sudo bash bootstrap/pull_model_limited.sh --rate 20mbit qwen2.5:7b
 ```
 
-Isso aplica um limite temporario de banda no WSL durante o pull e remove a regra no final.
+Isso aplica um limite temporario de download no WSL durante o pull e remove a regra no final.
 Se quiser mais folga para browser, Teams e email, comece com `10mbit` ou `15mbit`.
 
 ## Se voce ja tem modelo Ollama instalado

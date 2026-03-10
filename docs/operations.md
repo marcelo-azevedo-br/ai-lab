@@ -29,6 +29,9 @@ Se ainda pesar para os apps do Windows, reduza para:
 - `15mbit`
 - `10mbit`
 
+Se o `ollama pull` mostrar velocidade muito acima do limite escolhido, o shaping estava no caminho errado.
+O helper atual limita o trafego de entrada do WSL com `ifb`, que e o que importa para downloads.
+
 ## Ajuste de modelos locais
 
 Se voce ja tem modelos instalados no Ollama, use `bootstrap/env.example` como base e sobrescreva:
