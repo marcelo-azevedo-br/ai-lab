@@ -23,6 +23,7 @@
 No WSL, prefira:
 
 - `sudo bash bootstrap/pull_model_limited.sh --rate 20mbit qwen2.5:7b`
+- `sudo bash bootstrap/models.sh`
 
 Se ainda pesar para os apps do Windows, reduza para:
 

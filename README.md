@@ -46,6 +46,18 @@ sudo bash bootstrap/pull_model_limited.sh --rate 20mbit qwen2.5:7b
 Isso aplica um limite temporario de download no WSL durante o pull e remove a regra no final.
 Se quiser mais folga para browser, Teams e email, comece com `10mbit` ou `15mbit`.
 
+Para baixar todos os modelos recomendados em sequencia, com feedback visual e limite padrao de `10mbit`:
+
+```bash
+sudo bash bootstrap/models.sh
+```
+
+Para um limite diferente:
+
+```bash
+sudo bash bootstrap/models.sh --rate 5mbit
+```
+
 ## Se voce ja tem modelo Ollama instalado
 
 Voce nao precisa baixar exatamente os modelos sugeridos no `factory.toml`.
