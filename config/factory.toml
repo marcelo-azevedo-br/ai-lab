@@ -1,0 +1,74 @@
+[workspace]
+name = "ai-lab"
+runs_dir = "factory/runs"
+products_dir = "products"
+prompts_dir = "factory/prompts"
+agents_dir = "factory/agents"
+
+[orchestrator]
+provider = "codex"
+command = "codex"
+model = "gpt-5"
+sandbox = "workspace-write"
+approval_policy = "on-request"
+full_auto = true
+role_file = "factory/agents/orchestrator.md"
+
+[workers.research]
+provider = "ollama"
+command = "ollama"
+model = "qwen2.5:7b"
+role_file = "factory/agents/research.md"
+
+[workers.analyst]
+provider = "ollama"
+command = "ollama"
+model = "llama3:8b"
+role_file = "factory/agents/analyst.md"
+
+[workers.dev]
+provider = "ollama"
+command = "ollama"
+model = "deepseek-coder:6.7b"
+role_file = "factory/agents/dev.md"
+
+[workers.marketing]
+provider = "ollama"
+command = "ollama"
+model = "phi3:mini"
+role_file = "factory/agents/marketing.md"
+
+[[pipeline.steps]]
+name = "scan"
+executor = "research"
+prompt = "scan.md"
+output = "01-scan.md"
+gate = ""
+
+[[pipeline.steps]]
+name = "score"
+executor = "orchestrator"
+prompt = "score.md"
+output = "02-score.md"
+gate = "idea"
+
+[[pipeline.steps]]
+name = "spec"
+executor = "orchestrator"
+prompt = "spec.md"
+output = "03-spec.md"
+gate = "mvp"
+
+[[pipeline.steps]]
+name = "build"
+executor = "dev"
+prompt = "build.md"
+output = "04-build.md"
+gate = "build"
+
+[[pipeline.steps]]
+name = "marketing"
+executor = "marketing"
+prompt = "marketing.md"
+output = "05-marketing.md"
+gate = ""

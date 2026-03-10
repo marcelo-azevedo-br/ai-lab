@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+factory/runs/*
+!factory/runs/.gitkeep
+products/*
+!products/.gitkeep
+.DS_Store
+*:Zone.Identifier
