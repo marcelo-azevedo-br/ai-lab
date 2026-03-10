@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from argparse import ArgumentParser
+import os
 from pathlib import Path
 import shutil
 
@@ -68,7 +69,17 @@ def cmd_check(config: FactoryConfig, deep: bool) -> int:
         print(f"path   {path}")
 
     if deep:
-        print("deep-check habilitado: use bootstrap/check.sh para validar modelos locais.")
+        overrides = {
+            "AI_LAB_CODEX_MODEL": os.getenv("AI_LAB_CODEX_MODEL", ""),
+            "AI_LAB_RESEARCH_MODEL": os.getenv("AI_LAB_RESEARCH_MODEL", ""),
+            "AI_LAB_ANALYST_MODEL": os.getenv("AI_LAB_ANALYST_MODEL", ""),
+            "AI_LAB_DEV_MODEL": os.getenv("AI_LAB_DEV_MODEL", ""),
+            "AI_LAB_MARKETING_MODEL": os.getenv("AI_LAB_MARKETING_MODEL", ""),
+        }
+        print("env-overrides")
+        for key, value in overrides.items():
+            print(f"{key}={value or '-'}")
+        print("use bootstrap/check.sh para validar modelos locais.")
     return 1 if missing else 0
 
 

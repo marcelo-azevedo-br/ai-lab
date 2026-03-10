@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import tomllib
 
@@ -86,8 +87,8 @@ def load_config(config_path: str | Path = "config/factory.toml", *, root_dir: st
     )
     orchestrator = OrchestratorConfig(
         provider=orchestrator_data["provider"],
-        command=orchestrator_data["command"],
-        model=orchestrator_data["model"],
+        command=os.getenv("AI_LAB_CODEX_COMMAND", orchestrator_data["command"]),
+        model=os.getenv("AI_LAB_CODEX_MODEL", orchestrator_data["model"]),
         sandbox=orchestrator_data["sandbox"],
         approval_policy=orchestrator_data["approval_policy"],
         full_auto=bool(orchestrator_data.get("full_auto", False)),
@@ -96,11 +97,13 @@ def load_config(config_path: str | Path = "config/factory.toml", *, root_dir: st
 
     workers: dict[str, WorkerConfig] = {}
     for name, worker_data in workers_data.items():
+        env_model = os.getenv(f"AI_LAB_{name.upper()}_MODEL")
+        env_command = os.getenv(f"AI_LAB_{name.upper()}_COMMAND")
         workers[name] = WorkerConfig(
             name=name,
             provider=worker_data["provider"],
-            command=worker_data["command"],
-            model=worker_data["model"],
+            command=env_command or worker_data["command"],
+            model=env_model or worker_data["model"],
             role_file=_resolve(root, worker_data["role_file"]),
         )
 

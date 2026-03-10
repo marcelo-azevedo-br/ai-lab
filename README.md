@@ -35,6 +35,26 @@ python3 run_factory.py approve --run-id <RUN_ID> --gate idea
 python3 run_factory.py run --run-id <RUN_ID> --through marketing
 ```
 
+## Se voce ja tem modelo Ollama instalado
+
+Voce nao precisa baixar exatamente os modelos sugeridos no `factory.toml`.
+Pode sobrescrever o mapeamento dos workers via ambiente:
+
+```bash
+export AI_LAB_RESEARCH_MODEL="seu-modelo"
+export AI_LAB_ANALYST_MODEL="seu-modelo"
+export AI_LAB_DEV_MODEL="seu-modelo"
+export AI_LAB_MARKETING_MODEL="seu-modelo"
+```
+
+Ou copie o exemplo:
+
+```bash
+cp bootstrap/env.example .env.local
+```
+
+Depois ajuste os valores e exporte no shell.
+
 ## Observações
 
 - Os scripts de bootstrap instalam e baixam dependências, mas eu não os executei automaticamente.
