@@ -35,6 +35,17 @@ python3 run_factory.py approve --run-id <RUN_ID> --gate idea
 python3 run_factory.py run --run-id <RUN_ID> --through marketing
 ```
 
+## Limitar banda no pull do Ollama
+
+Se voce estiver no WSL e nao quiser que o `ollama pull` sature sua internet inteira:
+
+```bash
+sudo bash bootstrap/pull_model_limited.sh --rate 20mbit qwen2.5:7b
+```
+
+Isso aplica um limite temporario de banda no WSL durante o pull e remove a regra no final.
+Se quiser mais folga para browser, Teams e email, comece com `10mbit` ou `15mbit`.
+
 ## Se voce ja tem modelo Ollama instalado
 
 Voce nao precisa baixar exatamente os modelos sugeridos no `factory.toml`.

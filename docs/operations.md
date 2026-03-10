@@ -18,6 +18,17 @@
 - `python3 run_factory.py check`
 - `bash bootstrap/check.sh`
 
+## Pull do Ollama sem saturar a rede
+
+No WSL, prefira:
+
+- `sudo bash bootstrap/pull_model_limited.sh --rate 20mbit qwen2.5:7b`
+
+Se ainda pesar para os apps do Windows, reduza para:
+
+- `15mbit`
+- `10mbit`
+
 ## Ajuste de modelos locais
 
 Se voce ja tem modelos instalados no Ollama, use `bootstrap/env.example` como base e sobrescreva:
