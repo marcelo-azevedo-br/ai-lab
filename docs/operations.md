@@ -28,5 +28,3 @@ Se voce ja tem modelos instalados no Ollama, use `bootstrap/env.example` como ba
 - `AI_LAB_MARKETING_MODEL`
 
 Isso evita editar o `config/factory.toml` toda vez.
-
-No estado atual, o fallback padrao esta em `qwen2.5:3b` para todos os workers locais, porque esse e o modelo confirmado no seu `ollama list`.

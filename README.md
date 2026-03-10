@@ -47,11 +47,6 @@ export AI_LAB_DEV_MODEL="seu-modelo"
 export AI_LAB_MARKETING_MODEL="seu-modelo"
 ```
 
-Estado atual deste repo:
-
-- fallback padrao configurado para `qwen2.5:3b`, porque esse modelo ja existe no seu ambiente
-- quando voce baixar modelos melhores, basta sobrescrever por ambiente sem mexer no codigo
-
 Ou copie o exemplo:
 
 ```bash
