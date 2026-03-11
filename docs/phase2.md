@@ -62,8 +62,15 @@ Por isso:
 
 O repo agora usa `tool-agent` como runtime local padrao.
 
-`LangGraph` ainda nao e obrigatorio para a execucao atual.
-Ele entra como proxima camada opcional para workflows mais sofisticados, checkpoints mais ricos e subagentes composicionais.
+`LangGraph` nao e necessario para o estado funcional atual, mas passa a ser a camada-alvo da arquitetura para controlar todos os workers com mais rigor.
+
+Objetivo dessa proxima fase:
+
+- grafo supervisor para `research`, `analyst`, `dev` e `marketing`
+- checkpoints explicitos
+- handoffs controlados
+- retries e branches mais previsiveis
+- estado persistente mais rico entre etapas
 
 ## Artifacts
 
@@ -88,26 +95,34 @@ export BRAVE_SEARCH_API_KEY="seu-token"
 
 Sem isso, os workers de web research entram em modo degradado e registram o skip no `*.tools.md`.
 
-## LangGraph opcional
+## LangGraph como proxima camada
 
-Quando voce quiser subir para a camada seguinte:
+Quando formos subir para a camada seguinte:
 
 ```bash
 python3 -m pip install -r bootstrap/phase2-requirements.txt
 ```
 
-Depois podemos ligar o runtime de workers a um grafo real.
+Depois vamos ligar o runtime de workers a um grafo real.
+
+### Escopo esperado do grafo
+
+- `Codex` continua fora do grafo como chief of staff e browser specialist
+- `LangGraph` controla os workers locais
+- cada worker vira um node com estado, tools, saida estruturada e criterio de handoff
+- o `dev/coder` ganha o loop multi-etapa mais rico
+- `research`, `analyst` e `marketing` passam a operar com checkpoints mais controlados
 
 ## Proximos passos sugeridos
 
 1. Consolidar o `Codex` como browser specialist usando o helper `browser-review`
 2. Integrar `Playwright MCP` ao `Codex`
 3. Validar navegacao/teste web real em um fluxo simples
-4. Fortalecer o `dev/coder worker` como executor forte
-5. Validar e ajustar o `marketing worker`
-6. Validar o `analyst worker` com um run dedicado
-7. Fechar um checklist final de `stack pronta para uso`
-8. Decidir se `LangGraph` entra agora ou fica como camada opcional
+4. Introduzir `LangGraph` como camada de controle de todos os workers
+5. Fortalecer o `dev/coder worker` como executor forte
+6. Adaptar `research`, `analyst` e `marketing` para handoffs/checkpoints controlados
+7. Adicionar um `webchat` para conversar com o orquestrador/chief
+8. Fechar um checklist final de `stack pronta para uso`
 
 ## Ordem recomendada
 
@@ -115,8 +130,18 @@ Se a meta e prontidao do ambiente, a ordem recomendada e:
 
 1. `Playwright MCP`
 2. `browser-review` real
-3. fortalecimento do `dev/coder worker`
-4. validacao do `marketing worker`
-5. validacao do `analyst worker`
-6. checklist operacional final
-7. `LangGraph`, se ainda fizer sentido
+3. `LangGraph` para controle dos workers
+4. fortalecimento do `dev/coder worker`
+5. adaptacao/validacao de `research`, `analyst` e `marketing` sob o grafo
+6. `webchat` com o orquestrador/chief
+7. checklist operacional final
+
+## Objetivo final desta linha
+
+Stack pronta para:
+
+- conversar com um `chief/orchestrator` por webchat
+- delegar tarefas aos workers
+- acompanhar estado e progresso
+- usar browser/QA real pelo `Codex`
+- manter os workers locais sob controle via `LangGraph`

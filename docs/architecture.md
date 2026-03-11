@@ -5,10 +5,30 @@
 O projeto implementa a arquitetura sugerida no `contexto1.md` sem depender de OpenClaw:
 
 - `Codex CLI` atua como Chief of Staff/orquestrador e browser specialist
+- `LangGraph` passa a ser a camada-alvo de controle dos workers
 - `Ollama` executa workers locais por especialidade
 - os workers locais usam tools reais na Fase 2
 - cada execução vira um `run` com artefatos em disco
 - `gates` seguram o avanço até você aprovar a próxima fase
+
+## Arquitetura alvo
+
+```text
+Webchat
+  |
+  v
+Codex / Chief of Staff
+  |
+  +-- Browser specialist (Playwright MCP)
+  |
+  v
+LangGraph supervisor
+  |
+  +-- research worker
+  +-- analyst worker
+  +-- dev/coder worker
+  +-- marketing worker
+```
 
 ## Papéis
 
@@ -35,13 +55,17 @@ O projeto implementa a arquitetura sugerida no `contexto1.md` sem depender de Op
 
 ## LangGraph
 
-O runtime atual de tools funciona sem dependência externa nova.
-`LangGraph` entra como próxima camada opcional para:
+O runtime atual de tools ja funciona, mas a arquitetura alvo passa a usar `LangGraph` para:
 
 - supervisor graph
 - checkpoints mais ricos
 - handoffs explícitos entre subagentes
 - tool routing mais sofisticado
+- loops multi-etapa mais confiáveis, especialmente no `dev/coder`
+
+## Webchat final
+
+O objetivo final desta stack e expor um `webchat` para conversar com o orquestrador/chief, pedir tarefas, acompanhar andamento e receber atualizacoes.
 
 ## Fases
 

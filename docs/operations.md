@@ -77,7 +77,8 @@ Se o foco for `stack pronta para uso`, a sequencia recomendada e:
 
 1. integrar `Playwright MCP`
 2. validar `browser-review` real
-3. fortalecer o `dev/coder worker`
-4. validar o `marketing worker`
-5. validar o `analyst worker`
-6. fechar checklist final da stack
+3. introduzir `LangGraph` para controlar todos os workers
+4. fortalecer o `dev/coder worker`
+5. adaptar/validar `research`, `marketing` e `analyst` sob o grafo
+6. adicionar `webchat` para conversar com o orquestrador/chief
+7. fechar checklist final da stack
