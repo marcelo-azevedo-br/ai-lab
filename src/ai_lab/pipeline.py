@@ -43,7 +43,7 @@ class PipelineRunner:
             step_state = manifest.steps.get(step.name)
             if step_state and step_state.status == "completed":
                 previous_output = self._read_output(manifest, step)
-                if step.gate and not manifest.gates.get(step.gate, False):
+                if step.gate and not manifest.gates.get(step.gate, False) and not force:
                     manifest.status = "waiting_approval"
                     self.store.save(manifest)
                     self.store.write_report(manifest)

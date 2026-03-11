@@ -18,8 +18,10 @@ from ai_lab.shell import ShellRunner
 class FakeProvider:
     def __init__(self, name: str) -> None:
         self.name = name
+        self.calls = 0
 
     def execute(self, prompt: str, *, cwd: Path, output_file: Path) -> ProviderResult:
+        self.calls += 1
         content = f"{self.name}:{output_file.name}"
         output_file.write_text(content + "\n", encoding="utf-8")
         return ProviderResult(content=content, command=[self.name], stdout=content, stderr="")
@@ -86,6 +88,38 @@ class PipelineTests(unittest.TestCase):
             fourth = runner.run(manifest.run_id)
             self.assertEqual(fourth.executed_steps, ["marketing"])
             self.assertEqual(fourth.status, "completed")
+
+    def test_force_reruns_completed_step_before_pending_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for relative in ["config", "factory", "products"]:
+                self._copy_tree(ROOT / relative, root / relative)
+
+            config = load_config(root_dir=root)
+            store = RunStore(config)
+            manifest = store.create_run(vertical="guincho", objective="Automatizar atendimento")
+            runner = PipelineRunner(config, store, shell_runner=ShellRunner())
+            research = FakeProvider("research")
+            orchestrator = FakeProvider("codex")
+            runner.orchestrator = orchestrator
+            runner.workers = {
+                "research": research,
+                "analyst": FakeProvider("analyst"),
+                "dev": FakeProvider("dev"),
+                "marketing": FakeProvider("marketing"),
+            }
+
+            first = runner.run(manifest.run_id)
+            self.assertEqual(first.executed_steps, ["scan", "score"])
+            self.assertEqual(first.stopped_at_gate, "idea")
+            self.assertEqual(research.calls, 1)
+            self.assertEqual(orchestrator.calls, 1)
+
+            second = runner.run(manifest.run_id, through="score", force=True)
+            self.assertEqual(second.executed_steps, ["scan", "score"])
+            self.assertEqual(second.stopped_at_gate, "idea")
+            self.assertEqual(research.calls, 2)
+            self.assertEqual(orchestrator.calls, 2)
 
     def _copy_tree(self, source: Path, target: Path) -> None:
         target.mkdir(parents=True, exist_ok=True)
