@@ -11,10 +11,37 @@ if str(SRC) not in sys.path:
 
 from ai_lab.config import load_config
 from ai_lab.shell import ShellRunner
-from ai_lab.tooling import ToolRegistry
+from ai_lab.tooling import ToolRegistry, _HTMLSummaryExtractor
 
 
 class ToolingTests(unittest.TestCase):
+    def test_html_summary_extractor_ignores_script_noise(self) -> None:
+        parser = _HTMLSummaryExtractor()
+        parser.feed(
+            """
+            <html>
+              <head>
+                <title>SysGuincho</title>
+                <meta name="description" content="Software para empresas de guincho">
+                <script>window.alert('x'); var foo = 1;</script>
+              </head>
+              <body>
+                <h1>Software para guincho</h1>
+                <p>Atendimento e despacho via WhatsApp para operacoes pequenas.</p>
+                <p>function() { bad noise }</p>
+              </body>
+            </html>
+            """
+        )
+
+        summary = parser.summary()
+
+        self.assertEqual(summary["title"], "SysGuincho")
+        self.assertEqual(summary["description"], "Software para empresas de guincho")
+        self.assertIn("Software para guincho", summary["headings"])
+        self.assertIn("Atendimento e despacho via WhatsApp para operacoes pequenas.", summary["highlights"])
+        self.assertNotIn("function() { bad noise }", summary["highlights"])
+
     def test_research_report_skips_brave_without_key(self) -> None:
         config = load_config(root_dir=ROOT)
         registry = ToolRegistry(config, ShellRunner())

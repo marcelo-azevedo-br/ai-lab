@@ -53,6 +53,7 @@ model = "qwen2.5:7b"
 role_file = "factory/agents/research.md"
 runtime = "tool-agent"
 tools = ["brave_search", "fetch"]
+output_sections = ["Resumo executivo", "Dores reais", "Concorrentes", "Sinais de mercado", "Integracoes", "Riscos e lacunas"]
 
 [workers.analyst]
 provider = "ollama"
@@ -61,6 +62,7 @@ model = "llama3:8b"
 role_file = "factory/agents/analyst.md"
 runtime = "tool-agent"
 tools = ["brave_search", "fetch"]
+output_sections = ["Resumo executivo", "Score por criterio", "Riscos", "Recomendacao final"]
 
 [workers.dev]
 provider = "ollama"
@@ -69,6 +71,7 @@ model = "deepseek-coder:6.7b"
 role_file = "factory/agents/dev.md"
 runtime = "tool-agent"
 tools = ["repo_snapshot", "repo_search", "git_status"]
+output_sections = ["Resumo tecnico", "Arquitetura", "Backlog tecnico", "Testes minimos", "Proximos PRs"]
 
 [workers.marketing]
 provider = "ollama"
@@ -77,6 +80,7 @@ model = "phi3:mini"
 role_file = "factory/agents/marketing.md"
 runtime = "tool-agent"
 tools = ["brave_search", "fetch", "repo_snapshot"]
+output_sections = ["Resumo executivo", "Headline", "Proposta de valor", "CTAs", "Anuncios", "Mensagens WhatsApp"]
 
 [[pipeline.steps]]
 name = "scan"

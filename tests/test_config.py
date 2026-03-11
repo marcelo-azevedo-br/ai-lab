@@ -20,6 +20,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.steps[0].name, "scan")
         self.assertEqual(config.runtime.worker_runtime, "tool-agent")
         self.assertEqual(config.workers["research"].tools, ("brave_search", "fetch"))
+        self.assertEqual(config.workers["research"].output_sections[0], "Resumo executivo")
 
     def test_env_overrides_models(self) -> None:
         with mock.patch.dict(

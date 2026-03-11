@@ -26,18 +26,91 @@ class ToolEvent:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class _HTMLTextExtractor(HTMLParser):
+class _HTMLSummaryExtractor(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
-        self.parts: list[str] = []
+        self.title_parts: list[str] = []
+        self.description = ""
+        self.headings: list[str] = []
+        self.highlights: list[str] = []
+        self._capture_tag: str | None = None
+        self._buffer: list[str] = []
+        self._ignore_depth = 0
+        self._ignore_tags = {"script", "style", "noscript", "svg", "path"}
+        self._capture_tags = {"title", "h1", "h2", "h3", "p", "li"}
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in self._ignore_tags:
+            self._ignore_depth += 1
+            return
+
+        attrs_dict = {key.lower(): (value or "") for key, value in attrs}
+        if tag == "meta":
+            name = attrs_dict.get("name", "").lower()
+            prop = attrs_dict.get("property", "").lower()
+            content = attrs_dict.get("content", "").strip()
+            if content and not self.description and name in {"description"}:
+                self.description = content
+            if content and not self.description and prop in {"og:description", "twitter:description"}:
+                self.description = content
+            return
+
+        if self._ignore_depth == 0 and tag in self._capture_tags:
+            self._capture_tag = tag
+            self._buffer = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self._ignore_tags and self._ignore_depth > 0:
+            self._ignore_depth -= 1
+            return
+
+        if self._capture_tag != tag:
+            return
+
+        text = self._normalize(" ".join(self._buffer))
+        self._capture_tag = None
+        self._buffer = []
+        if not text or self._looks_like_markup_noise(text, tag=tag):
+            return
+
+        if tag == "title":
+            self.title_parts.append(text)
+        elif tag in {"h1", "h2", "h3"}:
+            if text not in self.headings:
+                self.headings.append(text)
+        elif tag in {"p", "li"}:
+            if text not in self.highlights:
+                self.highlights.append(text)
 
     def handle_data(self, data: str) -> None:
+        if self._ignore_depth > 0 or not self._capture_tag:
+            return
         text = data.strip()
         if text:
-            self.parts.append(text)
+            self._buffer.append(text)
 
-    def text(self) -> str:
-        return " ".join(self.parts)
+    def summary(self, *, max_headings: int = 4, max_highlights: int = 5) -> dict[str, list[str] | str]:
+        return {
+            "title": self._normalize(" ".join(self.title_parts)),
+            "description": self._normalize(self.description),
+            "headings": self.headings[:max_headings],
+            "highlights": self.highlights[:max_highlights],
+        }
+
+    def _normalize(self, text: str) -> str:
+        return re.sub(r"\s+", " ", text).strip()
+
+    def _looks_like_markup_noise(self, text: str, *, tag: str) -> bool:
+        lowered = text.lower()
+        if tag in {"p", "li"} and len(text) < 20:
+            return True
+        noise_markers = ["function(", "window.", "document.", "@media", "{", "}", ";", "var ", "const "]
+        if any(marker in lowered for marker in noise_markers):
+            return True
+        punctuation_ratio = sum(1 for ch in text if ch in "{};<>[]=()") / max(len(text), 1)
+        if punctuation_ratio > 0.05:
+            return True
+        return False
 
 
 class ToolRegistry:
@@ -169,14 +242,30 @@ class ToolRegistry:
             if not url:
                 continue
             try:
-                text = self._fetch_url_text(url)
+                page = self._fetch_url_summary(url)
             except Exception as exc:  # pragma: no cover - network path
                 bodies.append(f"### {url}\n- error: {exc}\n")
                 continue
             fetched += 1
-            snippet = text[: cfg.max_chars].strip()
+            highlights = page["highlights"] or [result.get("description", "").strip() or "nao encontrado"]
+            headings = page["headings"] or ["nao encontrado"]
             bodies.append(
-                f"### {result.get('title') or url}\n- url: {url}\n- domain: {urlparse(url).netloc}\n\n{snippet}\n"
+                "\n".join(
+                    [
+                        f"### {result.get('title') or url}",
+                        f"- url: {url}",
+                        f"- domain: {urlparse(url).netloc}",
+                        f"- page_title: {page['title'] or 'nao encontrado'}",
+                        f"- meta_description: {page['description'] or result.get('description', '').strip() or 'nao encontrado'}",
+                        "",
+                        "#### headings",
+                        *[f"- {item}" for item in headings[:4]],
+                        "",
+                        "#### highlights",
+                        *[f"- {item}" for item in highlights[:5]],
+                        "",
+                    ]
+                )
             )
 
         return ToolEvent(
@@ -314,17 +403,19 @@ class ToolRegistry:
         with urlopen(request, timeout=self.config.tools.fetch.timeout_seconds) as response:  # noqa: S310
             return json.loads(response.read().decode("utf-8"))
 
-    def _fetch_url_text(self, url: str) -> str:
+    def _fetch_url_summary(self, url: str) -> dict[str, list[str] | str]:
         cfg = self.config.tools.fetch
         request = Request(url, headers={"User-Agent": cfg.user_agent})
         with urlopen(request, timeout=cfg.timeout_seconds) as response:  # noqa: S310
             raw = response.read(cfg.max_chars * 4).decode("utf-8", errors="replace")
 
-        parser = _HTMLTextExtractor()
+        parser = _HTMLSummaryExtractor()
         parser.feed(raw)
-        text = parser.text()
-        text = re.sub(r"\s+", " ", text).strip()
-        return text[: cfg.max_chars]
+        summary = parser.summary()
+        summary["highlights"] = [item[: cfg.max_chars] for item in summary["highlights"]]  # type: ignore[index]
+        summary["description"] = str(summary["description"])[: cfg.max_chars]  # type: ignore[index]
+        summary["title"] = str(summary["title"])[:200]  # type: ignore[index]
+        return summary
 
     def _derive_search_queries(self, prompt: str, worker_name: str) -> list[str]:
         fields = self._prompt_fields(prompt)

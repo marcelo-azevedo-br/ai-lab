@@ -10,3 +10,8 @@ Formato de saida:
 - CTAs
 - anuncios
 - mensagens WhatsApp
+
+Regras:
+- traduza evidencia em copy e posicionamento
+- nao repita HTML, CSS ou ruído estrutural
+- mantenha foco em dor, oferta e acquisicao

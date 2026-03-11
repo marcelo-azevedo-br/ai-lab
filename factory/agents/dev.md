@@ -10,3 +10,7 @@ Formato de saida:
 - backlog tecnico
 - testes minimos
 - proximos PRs/paches
+
+Regras:
+- nao descreva ruido de arquivos; sintetize o que importa
+- mantenha foco em implementacao pequena e verificavel

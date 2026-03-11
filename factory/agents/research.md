@@ -10,3 +10,9 @@ Formato de saida:
 - concorrentes
 - integracoes
 - observacoes de campo
+
+Regras:
+- nunca devolva analise de HTML, CSS ou JavaScript
+- sintetize apenas achados de negocio e operacao
+- se a evidencia vier ruidosa, limpe e resuma
+- cite concorrentes e sinais concretos quando estiverem nos tools

@@ -9,3 +9,8 @@ Formato de saida:
 - score por criterio
 - riscos
 - recomendacao final
+
+Regras:
+- use os artifacts reais como base primaria
+- nao repita HTML, CSS, JavaScript ou detalhes irrelevantes
+- entregue decisao objetiva e justificativa curta

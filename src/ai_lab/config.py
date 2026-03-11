@@ -37,6 +37,7 @@ class WorkerConfig:
     role_file: Path
     runtime: str
     tools: tuple[str, ...]
+    output_sections: tuple[str, ...]
     max_tool_rounds: int = 1
 
 
@@ -216,6 +217,7 @@ def load_config(config_path: str | Path = "config/factory.toml", *, root_dir: st
             role_file=_resolve(root, worker_data["role_file"]),
             runtime=worker_data.get("runtime", runtime.worker_runtime),
             tools=tuple(worker_data.get("tools", [])),
+            output_sections=tuple(worker_data.get("output_sections", [])),
             max_tool_rounds=int(worker_data.get("max_tool_rounds", 1)),
         )
 

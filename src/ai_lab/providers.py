@@ -84,13 +84,17 @@ class OllamaProvider(BaseProvider):
             tool_report_path.write_text(tool_report, encoding="utf-8")
             artifacts["tool_report"] = str(tool_report_path)
         final_prompt = self.build_prompt(prompt)
+        output_contract = self._build_output_contract()
         if tool_report:
             final_prompt = (
                 f"{final_prompt}\n\n"
                 "Use as evidencias reais abaixo como contexto prioritario. "
-                "Se houver conflito entre memoria do modelo e os artifacts de tool, priorize os artifacts.\n\n"
+                "Se houver conflito entre memoria do modelo e os artifacts de tool, priorize os artifacts. "
+                "Nunca despeje HTML, CSS, JavaScript ou markup cru na resposta; sintetize os achados.\n\n"
                 f"{tool_report}"
             )
+        if output_contract:
+            final_prompt = f"{final_prompt}\n\n{output_contract}"
         command = [self.command, "run", self.model, final_prompt]
         result = self.shell_runner.run(command, cwd=cwd)
         content = result.stdout.strip()
@@ -101,6 +105,20 @@ class OllamaProvider(BaseProvider):
             stdout=result.stdout,
             stderr=result.stderr,
             artifacts=artifacts,
+        )
+
+    def _build_output_contract(self) -> str:
+        sections = list(self.worker.output_sections)
+        if not sections:
+            return ""
+        headings = "\n".join([f"## {section}\n- " for section in sections])
+        return (
+            "Contrato de saida obrigatorio:\n"
+            "- responda apenas em markdown\n"
+            "- use exatamente os headings abaixo, na mesma ordem\n"
+            "- se faltar dado, escreva `nao encontrado` em vez de inventar\n"
+            "- prefira bullets curtos e objetivos\n\n"
+            f"{headings}"
         )
 
 
