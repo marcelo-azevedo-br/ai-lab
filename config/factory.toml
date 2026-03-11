@@ -5,6 +5,11 @@ products_dir = "products"
 prompts_dir = "factory/prompts"
 agents_dir = "factory/agents"
 
+[runtime]
+worker_runtime = "tool-agent"
+langgraph_enabled = false
+tool_trace_enabled = true
+
 [orchestrator]
 provider = "codex"
 command = "codex"
@@ -14,29 +19,62 @@ approval_policy = "on-request"
 full_auto = true
 role_file = "factory/agents/orchestrator.md"
 
+[tools.brave_search]
+enabled = true
+endpoint = "https://api.search.brave.com/res/v1/web/search"
+api_key_env = "BRAVE_SEARCH_API_KEY"
+count = 5
+country = "BR"
+search_lang = "pt"
+ui_lang = "pt-BR"
+
+[tools.fetch]
+enabled = true
+timeout_seconds = 20
+max_chars = 6000
+max_pages = 3
+user_agent = "ai-lab/0.2"
+
+[tools.repo]
+enabled = true
+max_files = 200
+max_matches = 50
+
+[tools.browser]
+specialist = "codex"
+playwright_mcp_enabled = false
+
 [workers.research]
 provider = "ollama"
 command = "ollama"
 model = "qwen2.5:7b"
 role_file = "factory/agents/research.md"
+runtime = "tool-agent"
+tools = ["brave_search", "fetch"]
 
 [workers.analyst]
 provider = "ollama"
 command = "ollama"
 model = "llama3:8b"
 role_file = "factory/agents/analyst.md"
+runtime = "tool-agent"
+tools = ["brave_search", "fetch"]
 
 [workers.dev]
 provider = "ollama"
 command = "ollama"
 model = "deepseek-coder:6.7b"
 role_file = "factory/agents/dev.md"
+runtime = "tool-agent"
+tools = ["repo_snapshot", "repo_search", "git_status"]
 
 [workers.marketing]
 provider = "ollama"
 command = "ollama"
 model = "phi3:mini"
 role_file = "factory/agents/marketing.md"
+runtime = "tool-agent"
+tools = ["brave_search", "fetch", "repo_snapshot"]
 
 [[pipeline.steps]]
 name = "scan"

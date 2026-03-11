@@ -18,6 +18,8 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.workspace.name, "ai-lab")
         self.assertIn("research", config.workers)
         self.assertEqual(config.steps[0].name, "scan")
+        self.assertEqual(config.runtime.worker_runtime, "tool-agent")
+        self.assertEqual(config.workers["research"].tools, ("brave_search", "fetch"))
 
     def test_env_overrides_models(self) -> None:
         with mock.patch.dict(
@@ -25,6 +27,7 @@ class ConfigTests(unittest.TestCase):
             {
                 "AI_LAB_CODEX_MODEL": "gpt-5-mini",
                 "AI_LAB_DEV_MODEL": "qwen2.5-coder:7b",
+                "AI_LAB_LANGGRAPH_ENABLED": "true",
             },
             clear=False,
         ):
@@ -32,6 +35,7 @@ class ConfigTests(unittest.TestCase):
 
         self.assertEqual(config.orchestrator.model, "gpt-5-mini")
         self.assertEqual(config.workers["dev"].model, "qwen2.5-coder:7b")
+        self.assertTrue(config.runtime.langgraph_enabled)
 
 
 if __name__ == "__main__":

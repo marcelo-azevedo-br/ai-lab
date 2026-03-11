@@ -4,6 +4,7 @@ Arquitetura híbrida para uma "AI SaaS Factory" com:
 
 - `Codex CLI` como orquestrador cloud via sua assinatura ChatGPT Plus
 - `Ollama` como camada de workers locais
+- `tools` reais para os workers locais na Fase 2
 - pipeline versionado com `runs`, `gates` de aprovação e artefatos auditáveis
 
 ## Estrutura
@@ -22,8 +23,8 @@ Arquitetura híbrida para uma "AI SaaS Factory" com:
 1. Criar um `run`
 2. Executar `scan -> score -> spec -> build -> marketing`
 3. Travar a execução em `gates` de aprovação
-4. Usar o `Codex CLI` para decisões e revisão final
-5. Usar `Ollama` para workers locais especializados
+4. Usar o `Codex CLI` para decisões, revisão final e browser specialist
+5. Usar `Ollama` para workers locais especializados com tools reais
 
 ## Comandos
 
@@ -33,6 +34,7 @@ python3 run_factory.py new-run --vertical guincho --objective "Automacao de aten
 python3 run_factory.py run --run-id <RUN_ID> --through score
 python3 run_factory.py approve --run-id <RUN_ID> --gate idea
 python3 run_factory.py run --run-id <RUN_ID> --through marketing
+python3 run_factory.py browser-review --url https://meusite.com --task "Validar home mobile e CTA principal"
 ```
 
 ## Limitar banda no pull do Ollama
@@ -69,6 +71,7 @@ export AI_LAB_RESEARCH_MODEL="seu-modelo"
 export AI_LAB_ANALYST_MODEL="seu-modelo"
 export AI_LAB_DEV_MODEL="seu-modelo"
 export AI_LAB_MARKETING_MODEL="seu-modelo"
+export BRAVE_SEARCH_API_KEY="seu-token"
 ```
 
 Ou copie o exemplo:
@@ -84,3 +87,4 @@ Depois ajuste os valores e exporte no shell.
 - Os scripts de bootstrap instalam e baixam dependências, mas eu não os executei automaticamente.
 - A integração com `codex` e `ollama` usa shell/CLI para manter o projeto leve e reproduzível.
 - Os `runs` são ignorados no Git, exceto pelo placeholder do diretório.
+- A Fase 2 grava `*.tools.md` por etapa quando o worker usa ferramentas reais.

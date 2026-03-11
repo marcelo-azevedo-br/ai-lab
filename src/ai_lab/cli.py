@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import shutil
 
-from ai_lab.config import FactoryConfig, load_config
+from ai_lab.config import FactoryConfig, is_langgraph_installed, load_config
 from ai_lab.pipeline import PipelineRunner
 from ai_lab.run_store import RunStore
 
@@ -37,6 +37,12 @@ def build_parser() -> ArgumentParser:
 
     status = subparsers.add_parser("status")
     status.add_argument("--run-id", required=True)
+
+    browser = subparsers.add_parser("browser-review")
+    browser.add_argument("--url", required=True)
+    browser.add_argument("--task", required=True)
+    browser.add_argument("--run-id")
+    browser.add_argument("--output-file")
 
     return parser
 
@@ -79,6 +85,13 @@ def cmd_check(config: FactoryConfig, deep: bool) -> int:
         print("env-overrides")
         for key, value in overrides.items():
             print(f"{key}={value or '-'}")
+        print(f"runtime.worker_runtime={config.runtime.worker_runtime}")
+        print(f"runtime.langgraph_enabled={config.runtime.langgraph_enabled}")
+        print(f"langgraph_installed={is_langgraph_installed()}")
+        print(f"brave_key_present={bool(os.getenv(config.tools.brave_search.api_key_env, ''))}")
+        for name, worker in config.workers.items():
+            tools = ",".join(worker.tools) or "-"
+            print(f"worker.{name}=runtime:{worker.runtime} tools:{tools}")
         print("use bootstrap/check.sh para validar modelos locais.")
     return 1 if missing else 0
 
@@ -115,6 +128,35 @@ def cmd_status(store: RunStore, *, run_id: str) -> int:
     return 0
 
 
+def cmd_browser_review(runner: PipelineRunner, store: RunStore, *, url: str, task: str, run_id: str | None, output_file: str | None) -> int:
+    if output_file:
+        target = Path(output_file).resolve()
+    elif run_id:
+        manifest = store.load(run_id)
+        target = manifest.run_dir(store.config.workspace.runs_dir) / "browser-review.md"
+    else:
+        target = store.config.workspace.runs_dir / "browser-review-latest.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    prompt = (
+        "You are the browser specialist.\n\n"
+        "If Playwright MCP is configured, use it. If it is not configured, say so explicitly in the report.\n\n"
+        f"Target URL: {url}\n"
+        f"Task: {task}\n\n"
+        "Output format:\n"
+        "- status\n"
+        "- tools used\n"
+        "- findings\n"
+        "- reproduction\n"
+        "- recommended next action\n"
+    )
+    result = runner.orchestrator.execute(prompt, cwd=store.config.workspace.root_dir, output_file=target)
+    print(target)
+    if result.artifacts:
+        print(result.artifacts)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -130,6 +172,15 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_approve(store, run_id=args.run_id, gate=args.gate, note=args.note)
     if args.command == "status":
         return cmd_status(store, run_id=args.run_id)
+    if args.command == "browser-review":
+        return cmd_browser_review(
+            runner,
+            store,
+            url=args.url,
+            task=args.task,
+            run_id=args.run_id,
+            output_file=args.output_file,
+        )
 
     parser.error(f"Unknown command: {args.command}")
     return 2

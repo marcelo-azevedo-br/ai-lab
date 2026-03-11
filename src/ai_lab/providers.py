@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from ai_lab.config import FactoryConfig, WorkerConfig
 from ai_lab.shell import ShellRunner
+from ai_lab.tooling import ToolRegistry
 
 
 @dataclass(slots=True)
@@ -13,6 +14,7 @@ class ProviderResult:
     command: list[str]
     stdout: str
     stderr: str
+    artifacts: dict[str, str] = field(default_factory=dict)
 
 
 class BaseProvider:
@@ -67,11 +69,28 @@ class CodexProvider(BaseProvider):
 
 
 class OllamaProvider(BaseProvider):
-    def __init__(self, worker: WorkerConfig, shell_runner: ShellRunner) -> None:
+    def __init__(self, worker: WorkerConfig, config: FactoryConfig, shell_runner: ShellRunner, tool_registry: ToolRegistry) -> None:
         super().__init__(worker.command, worker.model, worker.role_file, shell_runner)
+        self.worker = worker
+        self.config = config
+        self.tool_registry = tool_registry
 
     def execute(self, prompt: str, *, cwd: Path, output_file: Path) -> ProviderResult:
+        tool_report = ""
+        artifacts: dict[str, str] = {}
+        if self.worker.runtime == "tool-agent":
+            tool_report, _ = self.tool_registry.build_report(self.worker, prompt, cwd=cwd)
+            tool_report_path = output_file.with_suffix(".tools.md")
+            tool_report_path.write_text(tool_report, encoding="utf-8")
+            artifacts["tool_report"] = str(tool_report_path)
         final_prompt = self.build_prompt(prompt)
+        if tool_report:
+            final_prompt = (
+                f"{final_prompt}\n\n"
+                "Use as evidencias reais abaixo como contexto prioritario. "
+                "Se houver conflito entre memoria do modelo e os artifacts de tool, priorize os artifacts.\n\n"
+                f"{tool_report}"
+            )
         command = [self.command, "run", self.model, final_prompt]
         result = self.shell_runner.run(command, cwd=cwd)
         content = result.stdout.strip()
@@ -81,10 +100,11 @@ class OllamaProvider(BaseProvider):
             command=command,
             stdout=result.stdout,
             stderr=result.stderr,
+            artifacts=artifacts,
         )
 
 
-def build_worker_provider(worker: WorkerConfig, shell_runner: ShellRunner) -> BaseProvider:
+def build_worker_provider(worker: WorkerConfig, config: FactoryConfig, shell_runner: ShellRunner, tool_registry: ToolRegistry) -> BaseProvider:
     if worker.provider != "ollama":
         raise ValueError(f"Unsupported worker provider: {worker.provider}")
-    return OllamaProvider(worker, shell_runner)
+    return OllamaProvider(worker, config, shell_runner, tool_registry)

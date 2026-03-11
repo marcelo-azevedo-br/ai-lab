@@ -14,3 +14,10 @@ ollama --version || true
 
 echo "==> Modelos"
 ollama list || true
+
+echo "==> Brave Search"
+if [[ -n "${BRAVE_SEARCH_API_KEY:-}" ]]; then
+  echo "ok: BRAVE_SEARCH_API_KEY presente"
+else
+  echo "missing: BRAVE_SEARCH_API_KEY"
+fi

@@ -9,6 +9,7 @@ from ai_lab.prompts import PromptRenderer
 from ai_lab.providers import CodexProvider, ProviderResult, build_worker_provider
 from ai_lab.run_store import RunStore
 from ai_lab.shell import ShellRunner
+from ai_lab.tooling import ToolRegistry
 from ai_lab.utils import utc_now
 
 
@@ -27,8 +28,9 @@ class PipelineRunner:
         self.shell_runner = shell_runner or ShellRunner()
         self.prompt_renderer = PromptRenderer(config.workspace.prompts_dir)
         self.orchestrator = CodexProvider(config, self.shell_runner)
+        self.tool_registry = ToolRegistry(config, self.shell_runner)
         self.workers = {
-            name: build_worker_provider(worker, self.shell_runner)
+            name: build_worker_provider(worker, config, self.shell_runner, self.tool_registry)
             for name, worker in config.workers.items()
         }
 
@@ -121,6 +123,7 @@ class PipelineRunner:
 
         state.status = "completed"
         state.completed_at = utc_now()
+        state.tool_report_file = Path(result.artifacts.get("tool_report", "")).name if result.artifacts.get("tool_report") else ""
         manifest.steps[step.name] = state
         manifest.last_step = step.name
         self.store.save(manifest)

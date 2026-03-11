@@ -96,8 +96,9 @@ class RunStore:
             lines.append("- nenhum step executado ainda")
         else:
             for step in manifest.steps.values():
+                tool_suffix = f" | tools: {step.tool_report_file}" if step.tool_report_file else ""
                 lines.append(
-                    f"- {step.name}: {step.status} | executor: {step.executor} | output: {step.output_file or '-'}"
+                    f"- {step.name}: {step.status} | executor: {step.executor} | output: {step.output_file or '-'}{tool_suffix}"
                 )
 
         report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")

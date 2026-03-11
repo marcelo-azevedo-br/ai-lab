@@ -10,6 +10,7 @@ MODELS=(
   "llama3:8b"
   "deepseek-coder:6.7b"
   "phi3:mini"
+  "mistral:7b"
 )
 
 usage() {

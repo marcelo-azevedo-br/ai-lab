@@ -17,6 +17,7 @@
 - `python3 -m unittest discover -s tests`
 - `python3 run_factory.py check`
 - `bash bootstrap/check.sh`
+- `python3 run_factory.py check --deep`
 
 ## Pull do Ollama sem saturar a rede
 
@@ -43,3 +44,29 @@ Se voce ja tem modelos instalados no Ollama, use `bootstrap/env.example` como ba
 - `AI_LAB_MARKETING_MODEL`
 
 Isso evita editar o `config/factory.toml` toda vez.
+
+## Brave Search
+
+Para ativar web research real:
+
+```bash
+export BRAVE_SEARCH_API_KEY="seu-token"
+```
+
+Depois rode novamente:
+
+```bash
+python3 run_factory.py run --run-id <RUN_ID> --through score --force
+```
+
+O artifact `01-scan.tools.md` deve deixar de mostrar skip do Brave e passar a registrar resultados reais de busca e fetch.
+
+## Browser specialist
+
+Para usar o `Codex` como browser specialist:
+
+```bash
+python3 run_factory.py browser-review --url https://meusite.com --task "Validar home, CTA principal e fluxo inicial"
+```
+
+Se o Playwright MCP estiver conectado ao Codex, ele pode navegar e testar.

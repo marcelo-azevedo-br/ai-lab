@@ -12,6 +12,7 @@ class StepState:
     status: str = "pending"
     prompt_file: str = ""
     output_file: str = ""
+    tool_report_file: str = ""
     started_at: str = ""
     completed_at: str = ""
 
