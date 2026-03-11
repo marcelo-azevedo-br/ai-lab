@@ -7,7 +7,9 @@ import os
 from pathlib import Path
 import re
 import shutil
+import time
 from typing import Any
+from urllib.error import HTTPError
 from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 
@@ -113,7 +115,9 @@ class ToolRegistry:
         queries = self._derive_search_queries(prompt, worker.name)
         all_results: list[dict[str, str]] = []
         query_sections: list[str] = []
-        for query in queries:
+        for index, query in enumerate(queries):
+            if index > 0 and cfg.min_interval_seconds > 0:
+                time.sleep(cfg.min_interval_seconds)
             try:
                 results = self._brave_search(query, api_key=api_key)
             except Exception as exc:  # pragma: no cover - network path
@@ -241,25 +245,51 @@ class ToolRegistry:
 
     def _brave_search(self, query: str, *, api_key: str) -> list[dict[str, str]]:
         cfg = self.config.tools.brave_search
-        params = urlencode(
+        attempts = [
             {
                 "q": query,
                 "count": cfg.count,
-                "country": cfg.country,
+                "country": cfg.country.lower(),
                 "search_lang": cfg.search_lang,
                 "ui_lang": cfg.ui_lang,
-            }
-        )
-        request = Request(
-            f"{cfg.endpoint}?{params}",
-            headers={
-                "Accept": "application/json",
-                "X-Subscription-Token": api_key,
-                "User-Agent": self.config.tools.fetch.user_agent,
             },
-        )
-        with urlopen(request, timeout=self.config.tools.fetch.timeout_seconds) as response:  # noqa: S310
-            payload = json.loads(response.read().decode("utf-8"))
+            {
+                "q": query,
+                "count": cfg.count,
+                "country": cfg.country.lower(),
+                "search_lang": cfg.search_lang,
+            },
+            {
+                "q": query,
+                "count": cfg.count,
+            },
+        ]
+        payload = None
+        last_error: Exception | None = None
+        for params_dict in attempts:
+            try:
+                payload = self._brave_request(params_dict, api_key=api_key)
+                break
+            except HTTPError as exc:
+                last_error = exc
+                if exc.code == 429:
+                    time.sleep(cfg.retry_429_seconds)
+                    try:
+                        payload = self._brave_request(params_dict, api_key=api_key)
+                        break
+                    except Exception as retry_exc:  # pragma: no cover - network path
+                        last_error = retry_exc
+                        continue
+                if exc.code == 422:
+                    continue
+                raise
+            except Exception as exc:  # pragma: no cover - network path
+                last_error = exc
+                raise
+
+        if payload is None:
+            assert last_error is not None
+            raise last_error
 
         raw_results = payload.get("web", {}).get("results", [])
         results: list[dict[str, str]] = []
@@ -270,6 +300,19 @@ class ToolRegistry:
             if title and url:
                 results.append({"title": title, "url": url, "description": description})
         return results
+
+    def _brave_request(self, params_dict: dict[str, Any], *, api_key: str) -> dict[str, Any]:
+        params = urlencode(params_dict)
+        request = Request(
+            f"{self.config.tools.brave_search.endpoint}?{params}",
+            headers={
+                "Accept": "application/json",
+                "X-Subscription-Token": api_key,
+                "User-Agent": self.config.tools.fetch.user_agent,
+            },
+        )
+        with urlopen(request, timeout=self.config.tools.fetch.timeout_seconds) as response:  # noqa: S310
+            return json.loads(response.read().decode("utf-8"))
 
     def _fetch_url_text(self, url: str) -> str:
         cfg = self.config.tools.fetch

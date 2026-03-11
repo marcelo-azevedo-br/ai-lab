@@ -27,6 +27,8 @@ count = 5
 country = "BR"
 search_lang = "pt"
 ui_lang = "pt-BR"
+min_interval_seconds = 1.2
+retry_429_seconds = 2.0
 
 [tools.fetch]
 enabled = true

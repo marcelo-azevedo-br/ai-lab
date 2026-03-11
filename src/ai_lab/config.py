@@ -56,6 +56,8 @@ class BraveSearchConfig:
     country: str
     search_lang: str
     ui_lang: str
+    min_interval_seconds: float
+    retry_429_seconds: float
 
 
 @dataclass(slots=True)
@@ -175,6 +177,8 @@ def load_config(config_path: str | Path = "config/factory.toml", *, root_dir: st
             country=tools_data["brave_search"].get("country", "BR"),
             search_lang=tools_data["brave_search"].get("search_lang", "pt"),
             ui_lang=tools_data["brave_search"].get("ui_lang", "pt-BR"),
+            min_interval_seconds=float(tools_data["brave_search"].get("min_interval_seconds", 1.2)),
+            retry_429_seconds=float(tools_data["brave_search"].get("retry_429_seconds", 2.0)),
         ),
         fetch=FetchConfig(
             enabled=bool(tools_data["fetch"].get("enabled", True)),
