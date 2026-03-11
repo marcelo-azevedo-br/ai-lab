@@ -38,11 +38,14 @@ class PipelineRunner:
         manifest = self.store.load(run_id)
         executed_steps: list[str] = []
         previous_output = ""
+        previous_tool_output = ""
 
         for step in self.config.steps:
             step_state = manifest.steps.get(step.name)
             if step_state and step_state.status == "completed":
-                previous_output = self._read_output(manifest, step)
+                if not force:
+                    previous_output = self._read_output(manifest, step)
+                    previous_tool_output = self._read_tool_output(manifest, step_state)
                 if step.gate and not manifest.gates.get(step.gate, False) and not force:
                     manifest.status = "waiting_approval"
                     self.store.save(manifest)
@@ -58,9 +61,16 @@ class PipelineRunner:
                         return PipelineResult(run_id=run_id, executed_steps=executed_steps, status=manifest.status)
                     continue
 
-            result = self._execute_step(manifest, step, previous_output=previous_output, dry_run=dry_run)
+            result = self._execute_step(
+                manifest,
+                step,
+                previous_output=previous_output,
+                previous_tool_output=previous_tool_output,
+                dry_run=dry_run,
+            )
             executed_steps.append(step.name)
             previous_output = result.content
+            previous_tool_output = self._read_tool_output(manifest, manifest.steps[step.name])
             if step.gate and not manifest.gates.get(step.gate, False):
                 manifest.status = "waiting_approval"
                 self.store.save(manifest)
@@ -88,6 +98,7 @@ class PipelineRunner:
         step: StepConfig,
         *,
         previous_output: str,
+        previous_tool_output: str,
         dry_run: bool,
     ) -> ProviderResult:
         run_dir = manifest.run_dir(self.config.workspace.runs_dir)
@@ -99,6 +110,7 @@ class PipelineRunner:
             manifest=manifest,
             context=manifest.context,
             previous_output=previous_output,
+            previous_tool_output=previous_tool_output,
         )
         prompt_path.write_text(prompt, encoding="utf-8")
 
@@ -135,4 +147,13 @@ class PipelineRunner:
         output_path = run_dir / step.output
         if output_path.exists():
             return output_path.read_text(encoding="utf-8")
+        return ""
+
+    def _read_tool_output(self, manifest: RunManifest, step_state: StepState | None) -> str:
+        if not step_state or not step_state.tool_report_file:
+            return ""
+        run_dir = manifest.run_dir(self.config.workspace.runs_dir)
+        tool_path = run_dir / step_state.tool_report_file
+        if tool_path.exists():
+            return tool_path.read_text(encoding="utf-8")
         return ""

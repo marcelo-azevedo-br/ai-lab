@@ -17,6 +17,7 @@ class PromptRenderer:
         manifest: RunManifest,
         context: str,
         previous_output: str,
+        previous_tool_output: str = "",
     ) -> str:
         template = Template((self.prompts_dir / prompt_name).read_text(encoding="utf-8"))
         payload = {
@@ -24,6 +25,7 @@ class PromptRenderer:
             "objective": manifest.objective,
             "context": context,
             "previous_output": previous_output,
+            "previous_tool_output": previous_tool_output,
             "approved_idea": manifest.approvals.get("idea", ""),
         }
         return template.safe_substitute(payload).strip() + "\n"

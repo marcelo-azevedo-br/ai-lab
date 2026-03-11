@@ -9,6 +9,9 @@ $context
 Entrada do scan:
 $previous_output
 
+Artifacts reais da etapa anterior:
+$previous_tool_output
+
 Tarefa:
 - gere 10 ideias
 - pontue mercado, urgencia, ticket, concorrencia e facilidade de aquisicao

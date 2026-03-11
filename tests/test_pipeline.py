@@ -19,12 +19,31 @@ class FakeProvider:
     def __init__(self, name: str) -> None:
         self.name = name
         self.calls = 0
+        self.prompts: list[str] = []
 
     def execute(self, prompt: str, *, cwd: Path, output_file: Path) -> ProviderResult:
         self.calls += 1
+        self.prompts.append(prompt)
         content = f"{self.name}:{output_file.name}"
         output_file.write_text(content + "\n", encoding="utf-8")
         return ProviderResult(content=content, command=[self.name], stdout=content, stderr="")
+
+
+class FakeResearchProvider(FakeProvider):
+    def execute(self, prompt: str, *, cwd: Path, output_file: Path) -> ProviderResult:
+        self.calls += 1
+        self.prompts.append(prompt)
+        tool_report_path = output_file.with_suffix(".tools.md")
+        tool_report_path.write_text("# Tool Report - research\n\n## brave_search\n- status: ok\n", encoding="utf-8")
+        content = f"scan-run-{self.calls}"
+        output_file.write_text(content + "\n", encoding="utf-8")
+        return ProviderResult(
+            content=content,
+            command=[self.name],
+            stdout=content,
+            stderr="",
+            artifacts={"tool_report": str(tool_report_path)},
+        )
 
 
 class PipelineTests(unittest.TestCase):
@@ -99,7 +118,7 @@ class PipelineTests(unittest.TestCase):
             store = RunStore(config)
             manifest = store.create_run(vertical="guincho", objective="Automatizar atendimento")
             runner = PipelineRunner(config, store, shell_runner=ShellRunner())
-            research = FakeProvider("research")
+            research = FakeResearchProvider("research")
             orchestrator = FakeProvider("codex")
             runner.orchestrator = orchestrator
             runner.workers = {
@@ -120,6 +139,31 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(second.stopped_at_gate, "idea")
             self.assertEqual(research.calls, 2)
             self.assertEqual(orchestrator.calls, 2)
+            self.assertIn("scan-run-2", orchestrator.prompts[-1])
+
+    def test_score_prompt_receives_previous_tool_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for relative in ["config", "factory", "products"]:
+                self._copy_tree(ROOT / relative, root / relative)
+
+            config = load_config(root_dir=root)
+            store = RunStore(config)
+            manifest = store.create_run(vertical="guincho", objective="Automatizar atendimento")
+            runner = PipelineRunner(config, store, shell_runner=ShellRunner())
+            research = FakeResearchProvider("research")
+            orchestrator = FakeProvider("codex")
+            runner.orchestrator = orchestrator
+            runner.workers = {
+                "research": research,
+                "analyst": FakeProvider("analyst"),
+                "dev": FakeProvider("dev"),
+                "marketing": FakeProvider("marketing"),
+            }
+
+            result = runner.run(manifest.run_id)
+            self.assertEqual(result.stopped_at_gate, "idea")
+            self.assertIn("# Tool Report - research", orchestrator.prompts[0])
 
     def _copy_tree(self, source: Path, target: Path) -> None:
         target.mkdir(parents=True, exist_ok=True)

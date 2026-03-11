@@ -118,6 +118,12 @@ class FactoryConfig:
                 seen.append(step.gate)
         return seen
 
+    def step_index(self, name: str) -> int:
+        for index, step in enumerate(self.steps):
+            if step.name == name:
+                return index
+        raise ValueError(f"Unknown step: {name}")
+
 
 def _resolve(root_dir: Path, value: str) -> Path:
     return (root_dir / value).resolve()
