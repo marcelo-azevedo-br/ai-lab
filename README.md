@@ -64,6 +64,7 @@ Voce nao precisa baixar exatamente os modelos sugeridos no `factory.toml`.
 Pode sobrescrever o mapeamento dos workers via ambiente:
 
 ```bash
+export AI_LAB_CODEX_MODEL="gpt-5.4"
 export AI_LAB_RESEARCH_MODEL="seu-modelo"
 export AI_LAB_ANALYST_MODEL="seu-modelo"
 export AI_LAB_DEV_MODEL="seu-modelo"

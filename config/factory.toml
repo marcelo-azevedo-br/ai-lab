@@ -8,7 +8,7 @@ agents_dir = "factory/agents"
 [orchestrator]
 provider = "codex"
 command = "codex"
-model = "gpt-5"
+model = "gpt-5.4"
 sandbox = "workspace-write"
 approval_policy = "on-request"
 full_auto = true
