@@ -12,6 +12,41 @@ Sair de `prompt + modelo` e passar para `modelo + tools reais`.
 - `marketing`: Brave Search + fetch HTTP + snapshot do repo
 - `Codex`: supervisor/orquestrador e browser specialist
 
+## Maturidade por worker
+
+- `research`: pronto para uso inicial
+- `analyst`: pronto para uso inicial, ainda precisa validacao pratica dedicada
+- `dev/coder`: base pronta, mas ainda nao e um executor forte
+- `marketing`: base pronta, mas ainda nao foi validado como worker operacional forte
+- `Codex`: pronto como chief of staff; browser real ainda depende de `Playwright MCP`
+
+## Fases pendentes por worker
+
+### `dev/coder`
+
+Fase dedicada de fortalecimento:
+
+- loop de execucao real
+- rodar testes, lint e comandos do projeto
+- gerar patch e revalidar
+- produzir saida tecnica consistente para `build`
+
+### `marketing`
+
+Fase dedicada de validacao:
+
+- rodar um fluxo real de copy/oferta/landing
+- validar qualidade da saida com evidencias web
+- ajustar templates e ferramentas conforme necessidade
+
+### `analyst`
+
+Fase menor de validacao:
+
+- validar um run dedicado
+- confirmar que score/riscos/recomendacao se mantem consistentes
+- ajustar apenas se aparecer ruido relevante
+
 ## Decisao de escopo
 
 Nesta interacao, o objetivo principal passa a ser `stack pronta para uso`, nao `construcao do produto`.
@@ -68,8 +103,11 @@ Depois podemos ligar o runtime de workers a um grafo real.
 1. Consolidar o `Codex` como browser specialist usando o helper `browser-review`
 2. Integrar `Playwright MCP` ao `Codex`
 3. Validar navegacao/teste web real em um fluxo simples
-4. Decidir se `LangGraph` entra agora ou fica como camada opcional
-5. Fechar um checklist final de `stack pronta para uso`
+4. Fortalecer o `dev/coder worker` como executor forte
+5. Validar e ajustar o `marketing worker`
+6. Validar o `analyst worker` com um run dedicado
+7. Fechar um checklist final de `stack pronta para uso`
+8. Decidir se `LangGraph` entra agora ou fica como camada opcional
 
 ## Ordem recomendada
 
@@ -77,5 +115,8 @@ Se a meta e prontidao do ambiente, a ordem recomendada e:
 
 1. `Playwright MCP`
 2. `browser-review` real
-3. checklist operacional final
-4. `LangGraph`, se ainda fizer sentido
+3. fortalecimento do `dev/coder worker`
+4. validacao do `marketing worker`
+5. validacao do `analyst worker`
+6. checklist operacional final
+7. `LangGraph`, se ainda fizer sentido

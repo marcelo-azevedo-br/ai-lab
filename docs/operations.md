@@ -70,3 +70,14 @@ python3 run_factory.py browser-review --url https://meusite.com --task "Validar 
 ```
 
 Se o Playwright MCP estiver conectado ao Codex, ele pode navegar e testar.
+
+## Ordem sugerida apos o estado atual
+
+Se o foco for `stack pronta para uso`, a sequencia recomendada e:
+
+1. integrar `Playwright MCP`
+2. validar `browser-review` real
+3. fortalecer o `dev/coder worker`
+4. validar o `marketing worker`
+5. validar o `analyst worker`
+6. fechar checklist final da stack

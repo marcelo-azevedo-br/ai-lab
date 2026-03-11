@@ -25,6 +25,14 @@ O projeto implementa a arquitetura sugerida no `contexto1.md` sem depender de Op
 - `dev`: snapshot do repo + busca no repo + `git status`
 - `marketing`: Brave Search + fetch HTTP + snapshot do repo
 
+## Prontidao atual
+
+- `research`: pronto para uso inicial
+- `analyst`: pronto para uso inicial, pendente de validacao dedicada
+- `dev/coder`: pendente de fase de fortalecimento como executor forte
+- `marketing`: pendente de fase de validacao/ajuste operacional
+- `Codex`: pronto como supervisor; browser real depende de `Playwright MCP`
+
 ## LangGraph
 
 O runtime atual de tools funciona sem dependência externa nova.
